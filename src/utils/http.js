@@ -3,8 +3,9 @@ import axios from 'axios'
 import router from "../router";
 import store from "../store";
 
-axios.defaults.baseURL = 'http://localhost:8081'; // 设置axios的基础请求路径
-axios.defaults.timeout = 2000; // 设置axios的请求时间
+// axios.defaults.baseURL = 'http://localhost:8081'; // 设置axios的基础请求路径
+axios.defaults.baseURL = 'http://121.40.72.155:8081'; // 设置axios的基础请求路径
+axios.defaults.timeout = 3000; // 设置axios的请求时间
 
 axios.loadData = async function (url) {
     const resp = await axios.get(url);
@@ -14,8 +15,8 @@ axios.loadData = async function (url) {
 axios.interceptors.request.use(config => {
 // 在发送请求之前做些什么
 //判断是否存在token，如果存在将每个页面header都添加token
-    if(store.state.token){
-        config.headers.common['Authorization']=store.state.token.token
+    if (store.state.token) {
+        config.headers.common['Authorization'] = store.state.token.token
     }
 
     return config;

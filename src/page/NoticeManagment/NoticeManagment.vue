@@ -53,6 +53,7 @@
         </template>
       </el-table-column>
     </el-table>
+    <!--  添加  -->
     <el-drawer
         title="发布新公告"
         :before-close="handleClose"
@@ -77,7 +78,7 @@
         </el-form>
         <div class="demo-drawer__footer">
           <el-button @click="cancelForm">取 消</el-button>
-          <el-button type="primary" @click="$refs.drawer.closeDrawer()" :loading="loading">
+          <el-button type="primary" @click="handleClose" :loading="loading">
             {{ loading ? '提交中 ...' : '确 定' }}
           </el-button>
         </div>
@@ -114,6 +115,7 @@
         </div>
       </div>
     </el-drawer>
+    <!--  分页  -->
     <el-pagination
         style="margin-top:10px;"
         background
@@ -220,21 +222,29 @@ export default {
       this.$confirm('确定要发布公告吗？')
           // eslint-disable-next-line no-unused-vars
           .then(_ => {
-            console.log(done)
-            this.$http.post('/procalamation/add', this.Procalamation).then(res => {
-              // console.log(res)
-              this.getProcalamationList();
-            })
-            done();
-            this.loading = false;
-            this.$message({
-              message: '添加成功',
-              type: 'success'
-            });
-
+            if (this.Procalamation.content !== '' && this.Procalamation.title !== '') {
+              console.log(done)
+              this.$http.post('/procalamation/add', this.Procalamation).then(res => {
+                // console.log(res)
+                this.getProcalamationList();
+              })
+              // done();
+              this.dialog = false;
+              this.loading = false;
+              this.$message({
+                message: '添加成功',
+                type: 'success'
+              });
+            } else {
+              this.$message({
+                type: 'info',
+                message: '添加失败'
+              });
+            }
           })
           // eslint-disable-next-line no-unused-vars
           .catch(_ => {
+            this.dialog = false;
             this.$message({
               type: 'info',
               message: '已取消'
@@ -243,23 +253,31 @@ export default {
     },
     //修改
     updatePro(done) {
-      if (this.loading) {
+      if (this.loading2) {
         return;
       }
       this.$confirm('确定修改公告吗？')
           // eslint-disable-next-line no-unused-vars
           .then(_ => {
-            // console.log(done)
-            this.$http.put('/procalamation/update', this.Procalamation).then(res => {
-              // console.log(res)
+            if (this.Procalamation.title !== '' && this.Procalamation.content !== '') {
+              // console.log(done)
+              this.$http.put('/procalamation/update', this.Procalamation).then(res => {
+                // console.log(res)
+                this.$message({
+                  message: '修改成功',
+                  type: 'success'
+                });
+                this.getProcalamationList();
+              })
+              done();
+              this.loading2 = false;
+            } else {
               this.$message({
-                message: '修改成功',
-                type: 'success'
+                type: 'info',
+                message: '修改失败'
               });
-              this.getProcalamationList();
-            })
-            done();
-            this.loading = false;
+            }
+
 
           })
           // eslint-disable-next-line no-unused-vars

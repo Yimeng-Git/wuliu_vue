@@ -14,6 +14,9 @@
       <el-form-item style="float: right ;margin-right: 40px">
         <el-button type="primary" @click="SelectWay">查询</el-button>
       </el-form-item>
+      <el-form-item style="float: right ;margin-right: 20px">
+        <el-button type="success" @click="dialog = true">添加</el-button>
+      </el-form-item>
     </el-form>
 
     <el-table
@@ -71,11 +74,11 @@
           label="收件邮编"
           width="120">
       </el-table-column>
-      <el-table-column
-          prop="carnum"
-          label="运输车辆"
-          width="120">
-      </el-table-column>
+      <!--      <el-table-column-->
+      <!--          prop="carnum"-->
+      <!--          label="运输车辆"-->
+      <!--          width="120">-->
+      <!--      </el-table-column>-->
       <el-table-column
           prop="arrive"
           label="运输状态"
@@ -92,17 +95,64 @@
               size="small">
             移除
           </el-button>
-          <el-button
-              @click.native.prevent="success(scope.row)"
-              type="text"
-              size="small"
-              v-show="scope.row.status==0 ? true : false"
-          >
-            到达
-          </el-button>
+          <!--          <el-button-->
+          <!--              @click.native.prevent="success(scope.row)"-->
+          <!--              type="text"-->
+          <!--              size="small"-->
+          <!--              v-show="scope.row.status==0 ? true : false"-->
+          <!--          >-->
+          <!--            到达-->
+          <!--          </el-button>-->
         </template>
       </el-table-column>
     </el-table>
+
+    <el-drawer
+        title="录入订单信息"
+        :before-close="handleClose"
+        :visible.sync="dialog"
+        direction="rtl"
+        custom-class="demo-drawer"
+        ref="drawer"
+    >
+      <div class="demo-drawer__content">
+        <el-form :model="waybill">
+          <el-form-item label="寄件人姓名" :label-width="formLabelWidth" style="margin-right: 20px">
+            <el-input v-model="waybill.senname"></el-input>
+          </el-form-item>
+          <el-form-item label="寄件人地址" :label-width="formLabelWidth" style="margin-right: 20px">
+            <el-input v-model="waybill.senaddress"></el-input>
+          </el-form-item>
+          <el-form-item label="寄件人邮编" :label-width="formLabelWidth" style="margin-right: 20px">
+            <el-input v-model="waybill.senzipcode"></el-input>
+          </el-form-item>
+          <el-form-item label="寄件人手机号" :label-width="formLabelWidth" style="margin-right: 20px">
+            <el-input v-model="waybill.senphonenum"></el-input>
+          </el-form-item>
+          <el-form-item label="物品名称" :label-width="formLabelWidth" style="margin-right: 20px">
+            <el-input v-model="waybill.goodsname"></el-input>
+          </el-form-item>
+          <el-form-item label="收件人姓名" :label-width="formLabelWidth" style="margin-right: 20px">
+            <el-input v-model="waybill.recname"></el-input>
+          </el-form-item>
+          <el-form-item label="收件人手机号" :label-width="formLabelWidth" style="margin-right: 20px">
+            <el-input v-model="waybill.recphonenum"></el-input>
+          </el-form-item>
+          <el-form-item label="收件人地址" :label-width="formLabelWidth" style="margin-right: 20px">
+            <el-input v-model="waybill.recaddress"></el-input>
+          </el-form-item>
+          <el-form-item label="收件人邮编" :label-width="formLabelWidth" style="margin-right: 20px">
+            <el-input v-model="waybill.reczipcode"></el-input>
+          </el-form-item>
+        </el-form>
+        <div class="demo-drawer__footer">
+          <el-button @click="cancelForm">取 消</el-button>
+          <el-button type="primary" @click="$refs.drawer.closeDrawer()" :loading="loading">
+            {{ loading ? '提交中 ...' : '确 定' }}
+          </el-button>
+        </div>
+      </div>
+    </el-drawer>
     <el-pagination
         style="margin-top:10px;"
         background
@@ -121,6 +171,11 @@ export default {
   name: "LogQuery",
   data() {
     return {
+      table: false,
+      dialog: false,
+      loading: false,
+      formLabelWidth: '150px',
+      timer: null,
       total: 0, //总共多少条数据
       queryMap: {pageNum: 1, pageSize: 10, tntnumber: '', status: ''}, //查询对象
       tableData: [{
@@ -150,6 +205,20 @@ export default {
         carnum: 'A180',
         arrive: '未到达'
       }],
+      waybill: {
+        tntnumber: '',
+        senname: '',
+        senaddress: '',
+        senzipcode: '',
+        senphonenum: '',
+        goodsname: '',
+        recname: '',
+        recphonenum: '',
+        recaddress: '',
+        reczipcode: '',
+        carnum: '',
+        arrive: ''
+      },
     }
   },
   methods: {
@@ -220,6 +289,47 @@ export default {
       this.queryMap.pageNum = current;
       this.getConsumerList();
     },
+    handleClose(done) {
+      if (this.loading) {
+        return;
+      }
+      this.$confirm('确定要添加订单信息吗？')
+          // eslint-disable-next-line no-unused-vars
+          .then(_ => {
+
+            if (this.waybill.senname === '' || this.waybill.senaddress === '' || this.waybill.senzipcode === '' || this.waybill.senphonenum === '' || this.waybill.goodsname === '' || this.waybill.recname === '' || this.waybill.recphonenum === '' || this.waybill.recaddress === '' || this.waybill.reczipcode === '') {
+              this.$message({
+                type: 'info',
+                message: '请填写完整信息'
+              });
+              return;
+            }
+            // console.log(done)
+            this.$http.post('/waybill/add', this.waybill).then(res => {
+              // console.log(res)
+              this.getConsumerList();
+            })
+            done();
+            this.loading = false;
+            this.$message({
+              message: '添加成功',
+              type: 'success'
+            });
+
+          })
+          // eslint-disable-next-line no-unused-vars
+          .catch(_ => {
+            this.$message({
+              type: 'info',
+              message: '已取消'
+            });
+          });
+    },
+    cancelForm() {
+      this.loading = false;
+      this.dialog = false;
+      clearTimeout(this.timer);
+    }
 
   },
   mounted() {

@@ -9,7 +9,6 @@
           <el-option label="全部" value=""></el-option>
           <el-option label="空闲中" value="0"></el-option>
           <el-option label="运输中" value="1"></el-option>
-          <el-option label="已到达" value="2"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item style="float: right ;margin-right: 40px">
@@ -70,7 +69,7 @@
       </el-table-column>
     </el-table>
     <el-drawer
-        title="发布新公告"
+        title="登记车辆"
         :before-close="handleClose"
         :visible.sync="dialog"
         direction="rtl"
@@ -185,18 +184,24 @@ export default {
       this.$confirm('确定要添加车辆吗？')
           // eslint-disable-next-line no-unused-vars
           .then(_ => {
-            // console.log(done)
-            this.$http.post('/car/add', this.car).then(res => {
-              // console.log(res)
-              this.getCarList();
-            })
-            done();
-            this.loading = false;
-            this.$message({
-              message: '添加成功',
-              type: 'success'
-            });
-
+            if (this.car.carnum !== '' && this.car.area !== '') {
+              // console.log(done)
+              this.$http.post('/car/add', this.car).then(res => {
+                // console.log(res)
+                this.getCarList();
+              })
+              done();
+              this.loading = false;
+              this.$message({
+                message: '添加成功',
+                type: 'success'
+              });
+            } else {
+              this.$message({
+                type: 'info',
+                message: '添加失败'
+              });
+            }
           })
           // eslint-disable-next-line no-unused-vars
           .catch(_ => {
